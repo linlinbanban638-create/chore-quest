@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Chore Quest: The Game</title>
+<style>
+:root{--bg:#fff8e7;--ink:#1d2340;--card:#fff;--soft:#e9eefc;--gold:#ffc928;--bad:#d6334a;--good:#2e9e3f;--ch:#2f6fe4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="light"]){color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a33;--ink:#f4f1e6;--card:#1f2748;--soft:#2a3562}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",Verdana,sans-serif;display:flex;flex-direction:column;max-width:520px;margin:0 auto;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+header{padding:10px 16px 4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-family:Impact,"Arial Black",sans-serif;font-size:22px;margin:0;text-shadow:2px 2px 0 var(--gold)}
+#hud{font-weight:700;font-size:15px;white-space:nowrap}
+main{flex:1;min-height:0;padding:6px 14px 14px;display:flex;flex-direction:column}
+.chap{align-self:flex-start;background:var(--ch);color:#fff;font-weight:700;padding:6px 14px;border-radius:14px 14px 14px 4px;font-size:15px}
+#game{flex:1;margin-top:10px;border:3px solid var(--ch);border-radius:20px;background:var(--card);padding:14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;position:relative}
+.scene{font-size:56px;text-align:center;line-height:1.1}
+.cube{display:inline-block;width:44px;height:44px;border-radius:10px;background:#4cd137;border:3px solid #2b9a1f;position:relative;vertical-align:middle}
+.cube:before,.cube:after{content:"";position:absolute;top:11px;width:8px;height:10px;background:#fff;border:2px solid #123;border-radius:50%}
+.cube:before{left:7px}.cube:after{right:7px}
+.cube b{position:absolute;left:12px;bottom:7px;width:14px;height:6px;border-bottom:3px solid #123;border-radius:0 0 10px 10px}
+.say{display:flex;flex-direction:column;gap:8px}
+.line{display:flex;align-items:flex-start;gap:8px}
+.line.h{flex-direction:row-reverse}
+.who{font-size:24px;flex:none}
+.bub{background:var(--soft);border:2px solid var(--ink);border-radius:18px;padding:8px 12px;font-size:17px;line-height:1.3;font-weight:600}
+.sign{align-self:center;background:#14346b;color:#fff;border:2px solid #7fd6ff;border-radius:12px;padding:8px 14px;font-weight:700;text-align:center}
+.note{background:var(--gold);color:#3a2a00;border-radius:14px;padding:9px 12px;font-weight:700;font-size:15px;text-align:center}
+.btn{background:var(--ch);color:#fff;border:0;border-radius:14px;padding:13px 16px;font-size:18px;font-weight:700;font-family:inherit;cursor:pointer;width:100%;touch-action:manipulation}
+.btn.alt{background:var(--soft);color:var(--ink);border:2px solid var(--ink)}
+.btn:disabled{opacity:.35}
+.w{display:flex;flex-direction:column;gap:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:var(--soft);border:2px solid var(--ink);border-radius:14px;padding:12px 6px;font-size:16px;font-weight:700;text-align:center;color:var(--ink);font-family:inherit;cursor:pointer}
+.card em{display:block;font-size:30px;font-style:normal}
+.card.ok{background:var(--good);color:#fff;border-color:var(--good)}
+.shake{animation:shake .35s}
+.meter{height:16px;background:var(--soft);border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.meter div{height:100%;background:var(--ch);transition:width .2s}
+.meter.boss div{background:var(--bad)}
+.row{display:flex;justify-content:space-between;font-weight:700}
+.arena{position:relative;flex:1;min-height:230px;background:var(--soft);border-radius:14px;overflow:hidden}
+.boss{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:70px;opacity:.9}
+.ping{position:absolute;background:#14346b;color:#fff;border:2px solid #7fd6ff;border-radius:14px;padding:9px 12px;font-weight:700;font-size:15px;font-family:inherit;animation:pop .2s;cursor:pointer;max-width:70%}
+.ping.hit{background:var(--good);border-color:var(--good)}
+.big{font-family:Impact,"Arial Black",sans-serif;font-size:38px;text-align:center;color:#fff;background:#c2262e;border-radius:10px;padding:8px;transform:rotate(-2deg);animation:pop .4s}
+.learn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.learn div{background:var(--soft);border-radius:12px;padding:8px;font-weight:700;font-size:14px;text-align:center}
+.learn em{display:block;font-size:22px;font-style:normal}
+.stars{font-size:34px;text-align:center}
+input{width:100%;padding:12px;border-radius:12px;border:2px solid var(--ink);background:var(--card);color:var(--ink);font-size:17px;font-family:inherit;user-select:text;-webkit-user-select:text}
+.conf{position:fixed;top:-30px;font-size:26px;pointer-events:none;animation:fall 2.4s linear forwards;z-index:9}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.mute{background:var(--soft);border:2px solid var(--ink);border-radius:12px;font-size:18px;padding:4px 10px;cursor:pointer;color:var(--ink)}
+.tip{background:var(--soft);border:2px dashed var(--ink);border-radius:14px;padding:9px 12px;font-weight:700;font-size:15px;line-height:1.35}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header><h1>THE CHORE QUEST</h1><button id="mute" class="mute" aria-label="Toggle music">🔊</button><div id="hud"></div></header>
+<main><div class="chap" id="chap"></div><div id="game" aria-live="polite"></div></main>
+<script>
+var G=document.getElementById("game"),S=[0,0,0,0],T=[],NAMES=["The Notification Trap","Build Your Quest","The Distraction Boss","Level Complete"],COLS=["#2f6fe4","#2e9e3f","#7a3fd1","#e0561f"];
+var BUDDY="<span class='cube'><b></b></span>";
+function clr(){T.forEach(function(t){clearTimeout(t);clearInterval(t)});T=[]}
+function scr(h){clr();G.innerHTML=h;G.scrollTop=0}
+function $(s){return G.querySelector(s)}
+function bub(w,t){return "<div class='line "+w+"'><div class='who'>"+(w==="h"?"🧒":BUDDY)+"</div><div class='bub'>"+t+"</div></div>"}
+function stars(n){return "⭐".repeat(n)+"☆".repeat(3-n)}
+function hud(l){
+  var tot=S.reduce(function(a,b){return a+b},0);
+  document.getElementById("hud").textContent="⭐ "+tot+"/12";
+  document.getElementById("chap").textContent="Chapter "+(l+1)+": "+NAMES[l];
+  document.documentElement.style.setProperty("--ch",COLS[l]);
+  mood=l===2?1:0;
+}
+function shake(e){e.classList.remove("shake");void e.offsetWidth;e.classList.add("shake")}
+var TIPS=["Notice when “one more minute” gets in the way of your plan.","Write down your jobs and choose one small first step.","You can be friendly and still say, “Not right now.”","Celebrate your effort, not just the finished job."];
+var REM=["Make a clear plan before you start playing.","Start small, put distractions aside, and give yourself 10 focused minutes.","Tell friends when you’ll be ready, like “See you at seven!”","Check your list at the end and be proud of your effort."];
+function intro(l,scene,lines,go){
+  hud(l);
+  scr("<div class='scene'>"+scene+"</div><div class='say'>"+lines.map(function(x){return bub(x[0],x[1])}).join("")+"</div><div class='tip'>💡 Quest tip: "+TIPS[l]+"</div><button class='btn' id='go'>Start level "+(l+1)+"</button>");
+  $("#go").onclick=go;
+}
+function done(l,n,msg,next){
+  S[l]=n;hud(l);jingle(n);
+  scr("<div class='scene'>🏅</div><div class='stars'>"+stars(n)+"</div><div class='note'>"+msg+"</div><div class='tip'>📌 Remember: "+REM[l]+"</div><button class='btn' id='nx'>Next</button>");
+  $("#nx").onclick=next;
+}
+
+/* LEVEL 1: choose wisely */
+function L1(){
+  var time=60,r=0;
+  var M=[[["b","What about your chores? Game night is coming!"]],[["h","Just one more round..."],["b","Your chores are still waiting!"]],[["h","Now I’m worried I won’t finish."],["b","Let’s make a plan—not a panic!"]]];
+  function draw(){
+    scr("<div class='scene'>"+(r<2?"📱🎮":"😰")+"</div><div class='meter'><div style='width:"+(time/60*100)+"%'></div></div><div class='sign'>⏰ Game night in "+time+" min</div><div class='say'>"+M[r].map(function(x){return bub(x[0],x[1])}).join("")+"</div><div class='w'><button class='btn alt' id='a'"+(r>=2?" disabled":"")+">🎮 Just one more round…</button><button class='btn' id='b'>📋 Make a plan</button></div>");
+    $("#a").onclick=function(){r++;time-=20;draw()};
+    $("#b").onclick=function(){
+      var n=Math.max(1,3-r);
+      done(0,n,r===0?"You planned first. Super smart!":"Notice when “one more minute” gets in the way of your plan.",function(){intro(1,"📋✨",[["b","Three jobs. That feels clearer!"],["b","Pick only the real chores."]],L2)});
+    };
+  }
+  draw();
+}
+
+/* LEVEL 2: checklist, park tablet, fold shirts */
+function L2(){
+  var good=["Fold laundry","Wash dishes","Take out trash"],all=[["👕","Fold laundry"],["📺","Watch one video"],["🍽️","Wash dishes"],["💬","Check game chat"],["🗑️","Take out trash"],["📲","Scroll feed"]],got=0,miss=0;
+  hud(1);
+  scr("<div class='note'>Build your checklist: tap the 3 real chores</div><div class='grid' id='g'></div><div class='row'><span>Checklist</span><span id='c'>0/3</span></div>");
+  all.forEach(function(a){
+    var b=document.createElement("button");b.className="card";b.innerHTML="<em>"+a[0]+"</em>"+a[1];
+    b.onclick=function(){
+      if(b.classList.contains("ok"))return;
+      if(good.indexOf(a[1])>-1){b.classList.add("ok");got++;$("#c").textContent=got+"/3";if(got===3)T.push(setTimeout(park,500))}
+      else{miss++;shake(b);b.innerHTML="<em>🚫</em>Not a chore!"}
+    };
+    $("#g").appendChild(b);
+  });
+  function park(){
+    scr("<div class='scene'>📱🅿️</div><div class='say'>"+bub("b","Distractions out of reach first!")+"</div><button class='btn' id='p'>Park the tablet</button>");
+    $("#p").onclick=function(){$("#p").remove();G.insertAdjacentHTML("beforeend","<div class='sign'>TABLET PARKING ✓</div>");T.push(setTimeout(fold,900))};
+  }
+  function fold(){
+    var n=0,t=10,go=false;
+    scr("<div class='say'>"+bub("b","Start with the shirts. Ten minutes of trying!")+"</div><div class='scene' id='s'>👕</div><div class='meter'><div id='m' style='width:0%'></div></div><div class='row'><span id='f'>Folded 0/10</span><span id='t'>⏳ 10s</span></div><button class='btn' id='b'>Tap to start folding!</button>");
+    var b=$("#b");
+    b.onclick=function(){
+      if(!go){go=true;b.textContent="Fold! 👕";T.push(setInterval(function(){t--;$("#t").textContent="⏳ "+t+"s";if(t<=0)end()},1000));return}
+      if(n<10){n++;$("#f").textContent="Folded "+n+"/10";$("#m").style.width=n*10+"%";$("#s").textContent="👕".repeat(Math.max(1,10-n))+"🧺".repeat(Math.min(3,Math.ceil(n/3)));if(n>=10)end()}
+    };
+    function end(){
+      clr();
+      var s=n>=10?3:n>=6?2:1;
+      s=Math.max(1,s-(miss>1?1:0));
+      done(1,s,n>=10?"All shirts folded. Small step, big win!":"You tried for ten minutes. Check your progress and keep going!",function(){intro(2,"👾📱",[["h","Ooh... I really want to!"],["b","Tap each invite to say “Not right now.” Don’t let 3 slip by!"]],L3)});
+    }
+  }
+}
+
+/* LEVEL 3: whack the distractions */
+var MSG=["Join us now?","Just 5 minutes!","Everyone’s online!","New game drop!","One quick match?","You’re missing out!"];
+function L3(){
+  var hp=100,focus=3;
+  scr("<div class='row'><span>👾 Distraction Boss</span><span id='fo'></span></div><div class='meter boss'><div id='hp' style='width:100%'></div></div><div class='arena' id='ar'><div class='boss'>👾</div></div><div class='note' id='nt'>Be friendly and firm: tap them!</div>");
+  var ar=$("#ar");
+  function fo(){$("#fo").textContent="Focus "+"💙".repeat(focus)+"🤍".repeat(3-focus)}
+  fo();
+  function spawn(){
+    var p=document.createElement("button");p.className="ping";p.textContent=MSG[Math.floor(Math.random()*MSG.length)];
+    p.style.left=(Math.random()*(ar.clientWidth-160))+"px";p.style.top=(Math.random()*(ar.clientHeight-50))+"px";
+    var alive=true;
+    p.onclick=function(){
+      if(!alive)return;alive=false;p.classList.add("hit");p.textContent="Not right now!";
+      hp-=12.5;$("#hp").style.width=Math.max(0,hp)+"%";
+      T.push(setTimeout(function(){p.remove()},300));
+      if(hp<=0){clr();done(2,focus,"You can be friendly and still say, “Not right now.”",function(){intro(3,"🧺🍽️🗑️",[["b","Ready for the final level?"],["h","One job at a time!"]],L4)})}
+    };
+    ar.appendChild(p);
+    T.push(setTimeout(function(){if(alive){alive=false;p.remove();focus--;fo();shake(ar);if(focus<=0){clr();lose()}}},2100));
+  }
+  T.push(setInterval(spawn,1000));spawn();
+}
+function lose(){
+  scr("<div class='scene'>😮‍💨</div><div class='say'>"+bub("b","Take a breath. You can try again!")+"</div><button class='btn' id='r'>Try again</button>");
+  $("#r").onclick=L3;
+}
+
+/* LEVEL 4: finish the chores */
+function L4(){
+  var jobs=[["🧺","Put laundry away","✅"],["🍽️","Do the dishes","✨"],["🗑️","Take out the trash","🚛"]],left=3,taps=0;
+  scr("<div class='note'>Tap each job 5 times to finish it</div><div class='w' id='w'></div>");
+  jobs.forEach(function(j){
+    var c=0,b=document.createElement("button");b.className="card";b.innerHTML="<em>"+j[0]+"</em>"+j[1]+"<div class='meter' style='margin-top:8px'><div style='width:0%'></div></div>";
+    b.onclick=function(){
+      if(c>=5)return;c++;taps++;b.querySelector(".meter div").style.width=c*20+"%";
+      if(c>=5){b.classList.add("ok");b.querySelector("em").textContent=j[2];left--;if(left===0)T.push(setTimeout(win,600))}
+    };
+    $("#w").appendChild(b);
+  });
+}
+function win(){
+  S[3]=3;hud(3);jingle(3);
+  var tot=S.reduce(function(a,b){return a+b},0),rank=tot>=11?"Quest Legend":tot>=8?"Focus Hero":"Quest Rookie";
+  var L=[["📋","Make a clear plan."],["👣","Start with one small step."],["⏱️","Give yourself time to focus."],["💬","Tell others when you’ll be ready."],["⭐","Be proud of your effort."]];
+  scr("<div class='big'>QUEST COMPLETE!</div><div class='stars'>⭐ "+tot+"/12</div><div class='note'>Rank: "+rank+" · “I kept my promise!”</div><div class='learn'>"+L.map(function(x){return "<div><em>"+x[0]+"</em>"+x[1]+"</div>"}).join("")+"</div><div class='note'>Think back: what helped you finish?</div><div class='grid' id='rf'></div><div class='tip' id='rt' style='display:none'></div><div class='tip'>🌟 Try it for real: 1) List your jobs. 2) Pick one small first step. 3) Park distractions and focus for 10 minutes.</div><div class='note'>What small task will you turn into a quest today?</div><input id='q' maxlength='80' placeholder='Type your quest…'><button class='btn' id='s'>Accept my quest</button><div class='note' id='o' style='display:none'></div><button class='btn alt' id='again'>Play again</button>");
+  $("#s").onclick=function(){
+    var v=$("#q").value.trim();if(!v)return;
+    var o=$("#o");o.style.display="block";o.textContent="Quest accepted: "+v+". Pick one small first step, then ten focused minutes!";
+  };
+  $("#again").onclick=start;
+  var R=[["📋","A clear plan","Plans turn a big pile into small steps."],["👣","One small step","Starting is the hardest part. One small step gets you moving."],["📱","Tablet parking","Putting distractions out of reach makes focus easier."],["💬","Saying “Not right now”","Being kind and clear helps you keep your promise."]];
+  R.forEach(function(r){var b=document.createElement("button");b.className="card";b.innerHTML="<em>"+r[0]+"</em>"+r[1];b.onclick=function(){b.classList.toggle("ok");var t=$("#rt");t.style.display="block";t.textContent=r[2]};$("#rf").appendChild(b)});
+  for(var i=0;i<24;i++){(function(i){setTimeout(function(){var c=document.createElement("span");c.className="conf";c.textContent=["🎉","⭐","✨","🏆"][i%4];c.style.left=Math.random()*95+"vw";document.body.appendChild(c);setTimeout(function(){c.remove()},2600)},i*90)})(i)}
+}
+function start(){S=[0,0,0,0];intro(0,"🛋️📱🧺",[["h","Awesome! I have loads of time!"],["b","Game night starts in one hour. Can you finish your 3 chores first?"]],L1)}
+
+/* MUSIC: tiny synth loop, no audio files */
+var AC,mg,soundOn=true,run=null,st=0,nt=0,mood=0;
+var PAT=[{bpm:116,m:[0,4,7,12,7,4,7,null,5,9,12,9,5,9,7,null],b:[-12,-12,-7,-5]},{bpm:150,m:[0,3,7,3,0,3,7,10,8,7,3,7,5,3,2,null],b:[-12,-12,-9,-14]}];
+function fr(n){return 261.63*Math.pow(2,n/12)}
+function ctx(){
+  if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();mg=AC.createGain();mg.gain.value=.5;mg.connect(AC.destination)}
+  if(AC.state==="suspended")AC.resume();return AC;
+}
+function tone(f,t,d,ty,v){
+  var o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(mg);o.start(t);o.stop(t+d+.05);
+}
+function tick(){
+  var p=PAT[mood],sp=60/p.bpm/2;
+  while(nt<AC.currentTime+.2){
+    var i=st%16,m=p.m[i];
+    if(m!=null)tone(fr(m),nt,sp*.9,"square",.06);
+    if(i%4===0)tone(fr(p.b[i/4]),nt,sp*3.5,"triangle",.16);
+    nt+=sp;st++;
+  }
+}
+function play(){if(!soundOn||run||!ctx())return;nt=AC.currentTime+.05;run=setInterval(tick,50)}
+function pause(){clearInterval(run);run=null}
+function blip(){if(soundOn&&ctx())tone(fr(19),AC.currentTime,.08,"square",.1)}
+function jingle(n){
+  if(!soundOn||!ctx())return;var t=AC.currentTime;
+  [0,4,7,12].slice(0,n+1).forEach(function(x,i){tone(fr(x+12),t+i*.12,.25,"square",.1)});
+}
+document.addEventListener("pointerdown",function(e){
+  if(!soundOn)return;play();
+  if(e.target.closest&&e.target.closest("button")&&e.target.id!=="mute")blip();
+});
+document.getElementById("mute").onclick=function(){
+  soundOn=!soundOn;this.textContent=soundOn?"🔊":"🔇";
+  if(soundOn)play();else pause();
+};
+start();
+</script>
+</body>
+</html>
